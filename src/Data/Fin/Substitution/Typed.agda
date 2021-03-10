@@ -11,15 +11,35 @@ open import Data.Fin.Substitution.ExtraLemmas
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Data.Unit using (⊤; tt)
 open import Data.Vec as Vec using (Vec; []; _∷_; map)
-open import Data.Vec.All as All
-  using (All; All₂; []; _∷_; map₂)
-open import Data.Vec.All.Properties
-  using (gmap; gmap₂; gmap₂₁; gmap₂₂)
+open import Data.Vec.All as All using (All; []; _∷_)
+open import Data.Vec.All.Properties using (gmap)
 open import Data.Vec.Properties using (lookup-map)
+open import Data.Vec.Relation.Pointwise.Inductive
+  using (Pointwise; map⁺; []; _∷_)
 open import Function as Fun using (_∘_; flip)
 open import Relation.Binary.PropositionalEquality as PropEq hiding (trans)
 open PropEq.≡-Reasoning
 
+------------------------------------------------------------------------
+-- Functions adapted from Agda standard library v0.14.
+
+-- A variant of map⁺ shifting only the first function from the binary
+-- relation to the vector.
+gmap₂₁ : ∀ {a b c p q} {A : Set a} {B : Set b} {C : Set c}
+           {P : A → B → Set p} {Q : C → B → Set q} {f : A → C} →
+         (∀ {x y} → P x y → Q (f x) y) → ∀ {k xs ys} →
+         Pointwise P {k} {k} xs ys → Pointwise Q {k} {k} (Vec.map f xs) ys
+gmap₂₁ g [] = []
+gmap₂₁ g (pxy ∷ pxys) = g pxy ∷ gmap₂₁ g pxys
+
+-- A variant of map⁺ shifting only the first function from the binary
+-- relation to the vector.
+gmap₂₂ : ∀ {a b c p q} {A : Set a} {B : Set b} {C : Set c}
+           {P : A → B → Set p} {Q : A → C → Set q} {f : B → C} →
+         (∀ {x y} → P x y → Q x (f y)) → ∀ {k xs ys} →
+         Pointwise P {k} {k} xs ys → Pointwise Q {k} {k} xs (Vec.map f ys)
+gmap₂₂ g [] = []
+gmap₂₂ g (pxy ∷ pxys) = g pxy ∷ gmap₂₂ g pxys
 
 ------------------------------------------------------------------------
 -- Abstract typing contexts and well-typedness relations
@@ -169,11 +189,11 @@ record TypedSub (Tp₁ Tp₂ Tm : ℕ → Set) : Set₁ where
   -- applied to something that is well-typed in a source context Γ,
   -- yields something well-typed in a well-formed target context Δ.
   data _⇒_⊢_ {m n} (Γ : Ctx Tp₁ m) (Δ : Ctx Tp₂ n) : Sub Tm m n → Set where
-    _,_ : ∀ {σ} → All₂ (λ t a → Δ ⊢ t ∈ (a / σ)) σ (toVec Γ) → Δ wf → Γ ⇒ Δ ⊢ σ
+    _,_ : ∀ {σ} → Pointwise (λ t a → Δ ⊢ t ∈ (a / σ)) σ (toVec Γ) → Δ wf → Γ ⇒ Δ ⊢ σ
 
   -- Project out the first component of a typed substitution.
   proj₁ : ∀ {m n} {Γ : Ctx Tp₁ m} {Δ : Ctx Tp₂ n} {σ : Sub Tm m n} →
-          Γ ⇒ Δ ⊢ σ → All₂ (λ t a → Δ ⊢ t ∈ (a / σ)) σ (toVec Γ)
+          Γ ⇒ Δ ⊢ σ → Pointwise (λ t a → Δ ⊢ t ∈ (a / σ)) σ (toVec Γ)
   proj₁ (σ-wt , _) = σ-wt
 
 -- Abstract extensions of substitutions.
@@ -210,7 +230,7 @@ record ExtensionTyped {Tp₁ Tp₂ Tm} (extension : Extension Tm)
       b-wf   = wf-∷₁ b∷Δ-wf
       t∈a/σ′ = subst (_⊢_∈_ _ _) (weaken-/ _) t∈a/σ
       σ-wt′  =
-        t∈a/σ′ ∷ gmap₂ (subst (_⊢_∈_ _ _) (weaken-/ _) ∘ weaken b-wf) σ-wt
+        t∈a/σ′ ∷ map⁺ (subst (_⊢_∈_ _ _) (weaken-/ _) ∘ weaken b-wf) σ-wt
 
 -- Abstract simple typed substitutions.
 record SimpleTyped {Tp Tm} (simple : Simple Tm)
@@ -260,7 +280,7 @@ record SimpleTyped {Tp Tm} (simple : Simple Tm)
   -- The first component of the identity substitution.
   private
     id₁ : ∀ {n} {Γ : Ctx Tp n} → Γ wf →
-          All₂ (λ t a → Γ ⊢ t ∈ (a / S.id)) S.id (C.toVec Γ)
+          Pointwise (λ t a → Γ ⊢ t ∈ (a / S.id)) S.id (C.toVec Γ)
     id₁ = proj₁ ∘ id
 
   -- Weakening.
