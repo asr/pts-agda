@@ -13,7 +13,7 @@
 --
 --   https://github.com/agda/agda-stdlib/
 --
--- The code has been tested using Agda 2.5.3 and version 0.15 of the
+-- The code has been tested using Agda 2.5.4.2 and version 0.16.1 of the
 -- Agda standard library.
 
 

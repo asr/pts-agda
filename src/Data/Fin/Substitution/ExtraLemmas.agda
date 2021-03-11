@@ -13,6 +13,7 @@ open import Data.Vec using (Vec; _∷_; lookup; map)
 open import Data.Vec.All hiding (lookup; map)
 open import Data.Vec.Properties using (lookup-map; map-cong; map-∘)
 open import Function using (_∘_; _$_; flip)
+import Level as L
 open import Relation.Binary.PropositionalEquality as PropEq hiding (subst)
 open PropEq.≡-Reasoning
 
@@ -29,7 +30,7 @@ record Extension (T : ℕ → Set) : Set where
   t /∷ ρ = t ∷ map weaken ρ
 
 -- Helper module
-module SimpleExt {T} (simple : Simple T) where
+module SimpleExt {T} (simple : Simple {L.zero} T) where
   open Simple simple public
 
   extension : Extension T
@@ -39,7 +40,7 @@ module SimpleExt {T} (simple : Simple T) where
 -- An generalized version of Data.Fin.Lemmas.Lemmas₀
 --
 -- FIXME: this should go into Data.Fin.Substitution.Lemmas.
-module ExtLemmas₀ {T} (lemmas₀ : Lemmas₀ T) where
+module ExtLemmas₀ {T} (lemmas₀ : Lemmas₀ {L.zero} T) where
 
   open Lemmas₀   lemmas₀ public hiding (lookup-map-weaken-↑⋆)
   open SimpleExt simple
@@ -63,7 +64,7 @@ module ExtLemmas₀ {T} (lemmas₀ : Lemmas₀ T) where
 -- A generalized version of Data.Fin.Lemmas.Lemmas₄
 --
 -- FIXME: this should go into Data.Fin.Substitution.Lemmas.
-module ExtLemmas₄ {T} (lemmas₄ : Lemmas₄ T) where
+module ExtLemmas₄ {T} (lemmas₄ : Lemmas₄ {L.zero} T) where
 
   open Lemmas₄    lemmas₄ public hiding (⊙-wk; wk-commutes)
   open Lemmas₃    lemmas₃        using (lookup-wk-↑⋆-⊙; /✶-↑✶′)
@@ -107,7 +108,7 @@ module ExtLemmas₄ {T} (lemmas₄ : Lemmas₄ T) where
 -- A generalize version of Data.Fin.Lemmas.AppLemmas
 --
 -- FIXME: this should go into Data.Fin.Substitution.Lemmas.
-module ExtAppLemmas {T₁ T₂} (appLemmas : AppLemmas T₁ T₂) where
+module ExtAppLemmas {T₁ T₂} (appLemmas : AppLemmas {L.zero} {L.zero} T₁ T₂) where
 
   open AppLemmas appLemmas public hiding (wk-commutes)
   open SimpleExt simple           using (_/∷_)

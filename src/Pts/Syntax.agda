@@ -12,6 +12,7 @@ open import Data.Fin.Substitution.Typed
 open import Data.Star using (Star; ε; _◅_)
 open import Data.Nat using (ℕ; suc; _+_)
 open import Data.Vec using (lookup)
+import Level as L
 open import Relation.Binary.PropositionalEquality as PropEq
 open PropEq.≡-Reasoning
 
@@ -41,7 +42,7 @@ module _ (Sort : Set) where
 
   -- Application of generic substitutions to terms
   module SubstApp {T} (l : Lift T Term) where
-    open Lift l
+    open Lift {L.zero} l
 
     infixl 8 _/_
 
@@ -94,9 +95,9 @@ module _ (Sort : Set) where
     -- Using these generic lemmas, we can instantiate the record
     -- Data.Fin.Substitution.Lemmas.TermLemmas below, which gives access
     -- to a number of useful (derived) lemmas about path substitutions.
-    module Lemmas {T₁ T₂} {lift₁ : Lift T₁ Term} {lift₂ : Lift T₂ Term} where
+    module Lemmas {T₁ T₂} {lift₁ : Lift T₁ Term} {lift₂ : Lift {L.zero} T₂ Term} where
       open SubstApp
-      open Lift lift₁ using () renaming (_↑✶_ to _↑✶₁_)
+      open Lift {L.zero} lift₁ using () renaming (_↑✶_ to _↑✶₁_)
       open Lift lift₂ using () renaming (_↑✶_ to _↑✶₂_)
       open Application (record { _/_ = SubstApp._/_ lift₁ }) using ()
         renaming (_/✶_ to _/✶₁_)
